@@ -1,0 +1,23 @@
+name: CD Pipeline
+
+on:
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /var/www/ci-cd-project
+            git pull origin main
+            pip install -r requirements.txt
+            sudo systemctl restart gunicorn
