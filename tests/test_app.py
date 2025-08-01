@@ -1,6 +1,11 @@
-# tests/test_app.py
-from app import app
+import sys
+import os
 import unittest
+
+# Add the 'app' directory to the Python path so we can import from app/app.py
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'app')))
+
+from app import app  # Now it will correctly import 'app' from 'app/app.py'
 
 class TestApp(unittest.TestCase):
     def test_home(self):
