@@ -1,0 +1,9 @@
+- name: restart gunicorn
+  service:
+    name: gunicorn
+    state: restarted
+
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted

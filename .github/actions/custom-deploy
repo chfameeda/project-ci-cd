@@ -1,0 +1,25 @@
+name: 'Custom Deploy'
+description: 'Deploys app via SSH'
+
+inputs:
+  server_ip:
+    required: true
+  ssh_user:
+    required: true
+  ssh_key:
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ inputs.server_ip }}
+        username: ${{ inputs.ssh_user }}
+        key: ${{ inputs.ssh_key }}
+        script: |
+          cd /var/www/ci-cd-project
+          git pull origin main
+          pip install -r requirements.txt
+          sudo systemctl restart gunicorn
