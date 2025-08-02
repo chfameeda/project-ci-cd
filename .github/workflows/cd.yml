@@ -8,16 +8,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4  # Checkout the code from the repository
+
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.5.3  # Set up SSH key for authentication
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}  # Uses the SSH_KEY secret
 
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@v1  # SSH action to connect and deploy to server
         with:
-          host: ${{ secrets.PROD_SERVER_IP }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
+          host: ${{ secrets.PROD_SERVER_IP }}  # The server's public IP (configured as secret)
+          username: ${{ secrets.SSH_USER }}    # The SSH username (configured as secret)
+          key: ${{ secrets.SSH_KEY }}          # The SSH private key (configured as secret)
           script: |
-            cd /var/www/ci-cd-project
-            git pull origin main
-            pip install -r requirements.txt
-            sudo systemctl restart gunicorn
+            echo "Navigating to the project directory"
+            cd /var/www/ci-cd-project || exit 1  # Ensure project directory exists
+
+            echo "Pulling latest code from GitHub"
+            git pull origin main || exit 1  # Pull the latest code from GitHub
+
+            echo "Installing dependencies"
+            pip install -r requirements.txt || exit 1  # Install dependencies from requirements.txt
+
+            echo "Restarting Gunicorn service"
+            sudo systemctl restart gunicorn || exit 1  # Restart the Gunicorn service
+
+            echo "Deployment completed successfully!"
