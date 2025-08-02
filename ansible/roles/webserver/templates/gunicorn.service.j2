@@ -1,0 +1,15 @@
+[Unit]
+Description=Gunicorn for CI/CD Project
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/var/www/project-ci-cd/app
+ExecStart=/usr/local/bin/gunicorn --bind 0.0.0.0:5000 app:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+
