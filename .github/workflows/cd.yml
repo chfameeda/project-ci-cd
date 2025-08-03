@@ -6,32 +6,35 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # Checkout the code from the repository
+        uses: actions/checkout@v4
 
       - name: Set up SSH key
-        uses: webfactory/ssh-agent@v0.5.3  # Set up SSH key for authentication
+        uses: webfactory/ssh-agent@v0.5.3
         with:
-          ssh-private-key: ${{ secrets.SSH_KEY }}  # Uses the SSH_KEY secret
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}  # ✅ Use the correct secret name
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1  # SSH action to connect and deploy to server
+      - name: Deploy Flask App via SSH
+        uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.PROD_SERVER_IP }}  # The server's public IP (configured as secret)
-          username: ${{ secrets.SSH_USER }}    # The SSH username (configured as secret)
-          key: ${{ secrets.SSH_KEY }}          # The SSH private key (configured as secret)
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            echo "Navigating to the project directory"
-            cd /var/www/ci-cd-project || exit 1  # Ensure project directory exists
+            echo "🔁 Navigating to app directory..."
+            cd /var/www/project-ci-cd || exit 1
 
-            echo "Pulling latest code from GitHub"
-            git pull origin main || exit 1  # Pull the latest code from GitHub
+            echo "📥 Pulling latest code..."
+            git pull origin main || exit 1
 
-            echo "Installing dependencies"
-            pip install -r requirements.txt || exit 1  # Install dependencies from requirements.txt
+            echo "📦 Installing dependencies..."
+            source venv/bin/activate
+            pip install -r app/requirements.txt || exit 1
 
-            echo "Restarting Gunicorn service"
-            sudo systemctl restart gunicorn || exit 1  # Restart the Gunicorn service
+            echo "🔄 Restarting Gunicorn..."
+            sudo systemctl restart gunicorn || exit 1
 
-            echo "Deployment completed successfully!"
+            echo "✅ Deployment completed successfully!"
+
