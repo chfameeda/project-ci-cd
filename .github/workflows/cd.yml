@@ -11,29 +11,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up SSH key
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}  # ✅ Use the correct secret name
-
-      - name: Deploy Flask App via SSH
-        uses: appleboy/ssh-action@v1.0.0
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.PROD_SERVER_IP }}
           username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
-            echo "🔁 Navigating to app directory..."
-            cd /var/www/project-ci-cd || exit 1
+            echo "Navigating to the project directory"
+            cd /var/www/ci-cd-project || exit 1
 
-            echo "📥 Pulling latest code..."
+            echo "Pulling latest code from GitHub"
             git pull origin main || exit 1
 
-            echo "📦 Installing dependencies..."
-            source venv/bin/activate
-            pip install -r app/requirements.txt || exit 1
+            echo "Installing Python dependencies"
+            pip install -r requirements.txt || exit 1
 
-            echo "🔄 Restarting Gunicorn..."
+            echo "Restarting Gunicorn"
             sudo systemctl restart gunicorn || exit 1
 
             echo "✅ Deployment completed successfully!"
