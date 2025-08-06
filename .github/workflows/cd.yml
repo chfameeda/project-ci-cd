@@ -7,28 +7,38 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    env:
+      GITHUB_TOKEN: ${{ secrets.CUSTOM_GH_TOKEN }}  # Use custom token
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}  # Match your secret
+
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.PROD_SERVER_IP }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
+          host: ${{ secrets.EC2_HOST }}       # Public IP of EC2
+          username: ${{ secrets.REMOTE_USER }}  # Typically "ubuntu"
+          key: ${{ secrets.SSH_PRIVATE_KEY }}   # Same SSH key as above
           script: |
-            echo "Navigating to the project directory"
+            echo "🔍 Navigating to project directory"
             cd /var/www/ci-cd-project || exit 1
 
-            echo "Pulling latest code from GitHub"
+            echo "📥 Pulling latest code"
             git pull origin main || exit 1
 
-            echo "Installing Python dependencies"
+            echo "📦 Installing Python dependencies"
             pip install -r requirements.txt || exit 1
 
-            echo "Restarting Gunicorn"
+            echo "🔁 Restarting Gunicorn service"
             sudo systemctl restart gunicorn || exit 1
 
             echo "✅ Deployment completed successfully!"
+
+
 
