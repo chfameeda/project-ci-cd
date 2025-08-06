@@ -1,24 +1,24 @@
 name: CD Pipeline
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Deploy to EC2 via SSH
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.CUSTOM_GH_TOKEN }}
         with:
-          host: ${{ secrets.EC2_HOST }}          # EC2 public IP
-          username: ${{ secrets.REMOTE_USER }}   # SSH user: ubuntu
-          key: ${{ secrets.SSH_PRIVATE_KEY }}    # SSH .pem key
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             echo "🔍 Navigating to project directory"
             cd /var/www/ci-cd-project || exit 1
@@ -26,14 +26,10 @@ jobs:
             echo "📥 Pulling latest code"
             git pull origin main || exit 1
 
-            echo "📦 Installing Python dependencies"
+            echo "📦 Installing dependencies"
             pip install -r requirements.txt || exit 1
 
             echo "🔁 Restarting Gunicorn"
             sudo systemctl restart gunicorn || exit 1
 
-            echo "✅ Deployment completed successfully!"
-
-
-
-
+            echo "✅ Deployment successful!"
